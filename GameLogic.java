@@ -111,7 +111,7 @@ public class GameLogic extends JFrame implements ActionListener{
             25, 24, 24, 24, 26, 24, 24, 24, 24, 24, 24, 24, 24, 24, 28
     };
 
-    private final short levels[][] = {levelData, level1Data, level2Data, level3Data};
+    private final short[][] levels = {levelData, level1Data, level2Data, level3Data};
 
 
 
@@ -120,8 +120,9 @@ public class GameLogic extends JFrame implements ActionListener{
     private boolean running = false;
     private boolean isPaused = false;
 
-    // load images from "images" folder
-    private void loadImages() {
+    /**
+     * Loads images from the "images" folder.
+     */    private void loadImages() {
         ghost = new ImageIcon("images/ghost.png").getImage();
         heart = new ImageIcon("images/heart.png").getImage();
         pacmanClose = new ImageIcon("images/pacman.png").getImage();
@@ -131,7 +132,9 @@ public class GameLogic extends JFrame implements ActionListener{
         pacmanRight = new ImageIcon("images/right.png").getImage();
     }
 
-
+    /**
+     * Initializes the game by loading images, initializing variables, adding key listener, setting focus, and starting the game.
+     */
     public GameLogic(){
         loadImages();
         initVariables();
@@ -140,6 +143,9 @@ public class GameLogic extends JFrame implements ActionListener{
         initGame();
     }
 
+    /**
+     * Initializes the game by setting lives, score, level, number of ghosts, and the speed of Pacman and ghosts.
+     */
     private void initGame() {
         lives = 3;
         score += 0;
@@ -149,6 +155,9 @@ public class GameLogic extends JFrame implements ActionListener{
         GHOST_CURR_SPEED = 3;
     }
 
+    /**
+     * Initializes the level by setting the screen data according to the current level.
+     */
     private void initLevel() {
         int i;
         for(i = 0; i < N_BLOCKS * N_BLOCKS; i++){
@@ -157,6 +166,9 @@ public class GameLogic extends JFrame implements ActionListener{
         continueLevel();
     }
 
+    /**
+     * Continues the level by setting the positions and speeds of ghosts and Pacman.
+     */
     private void continueLevel() {
         int dx = 1;
         int random;
@@ -185,19 +197,11 @@ public class GameLogic extends JFrame implements ActionListener{
         isDead = false;
     }
 
-    private void DisplayGraphics(Graphics2D g2d){
-        if(isDead){
-            death();
-        }
-        else{
-            movePacman();
-            drawPacman(g2d);
-            moveGhosts(g2d);
-            checkMaze();
-        }
-
-    }
-
+    /**
+     * Checks the current state of the maze. It checks if Pacman is on a grid cell, and if so,
+     * it checks if there are any special items on the cell (like speed boost or power pellets).
+     * It also checks if Pacman can move in the requested direction, and updates Pacman's position accordingly.
+     */
     private void checkMaze() {
         int pos;
         int ch = 0;
@@ -271,6 +275,10 @@ public class GameLogic extends JFrame implements ActionListener{
         pacman_y = pacman_y + PACMAN_CURR_SPEED * pacmand_y;
     }
 
+    /**
+     * Moves the ghosts in the maze. For each ghost, it checks if the ghost is on a grid cell,
+     * and if so, it calculates the possible moves for the ghost. It then updates the ghost's position accordingly.
+     */
     private void moveGhosts(Graphics2D g2d) {
         int pos;
         int count;
@@ -338,15 +346,27 @@ public class GameLogic extends JFrame implements ActionListener{
 
             if (pacman_x > (ghost_x[i] - 12) && pacman_x < (ghost_x[i] + 12)
                     && pacman_y > (ghost_y[i] - 12) && pacman_y < (ghost_y[i] + 12) && running) {
-                isDead = true;
+                if (eatBoost) {
+                    // remove ghost
+                    ghost_x[i] = -1;
+                    ghost_y[i] = -1;
+                } else {
+                    isDead = true;
+                }
             }
         }
     }
 
+    /**
+     * Draws a ghost at the specified position.
+     */
     private void drawGhost(Graphics2D g2d, int x, int y) {
         g2d.drawImage(ghost,x,y,this);
     }
 
+    /**
+     * Draws Pacman in the direction it is currently moving.
+     */
     private void drawPacman(Graphics2D g2d) {
 
         if(req_dx == -1){
@@ -360,6 +380,10 @@ public class GameLogic extends JFrame implements ActionListener{
         }
     }
 
+    /**
+     * Moves Pacman in the maze. It checks if all the dots in the maze have been eaten,
+     * and if so, it increases the score and initializes the next level.
+     */
     private void movePacman() {
         boolean finished = true;
         int i = 0;
@@ -381,14 +405,23 @@ public class GameLogic extends JFrame implements ActionListener{
         }
     }
 
+    /**
+     * Triggers the death sequence when Pacman is dead. It decreases the number of lives,
+     * resets the level, and checks if the game is over.
+     */
     private void death() {
         lives--;
+        currLevel = 1;
         if(lives == 0){
             running = false;
         }
         continueLevel();
     }
 
+    /**
+     * Paints the game components on the screen. It draws the maze, the score, and depending on the game state,
+     * it either plays the game or shows the intro screen.
+     */
     public void paintComponent(Graphics g){
         super.paintComponents(g);
 
@@ -409,24 +442,43 @@ public class GameLogic extends JFrame implements ActionListener{
         Toolkit.getDefaultToolkit().sync();
     }
 
+    /**
+     * Shows the intro screen with the game title.
+     */
     private void showIntroScreen(Graphics2D g2d) {
         String show = "GIDI'S MEGA PACMAN GAME!!!";
         g2d.setColor(Color.yellow);
         g2d.drawString(show, (SCREEN_SIZE) / 2, SCREEN_SIZE / 4);
     }
 
+    /**
+     * This method is responsible for the main gameplay loop. It checks if Pacman is dead, and if so, it triggers the death sequence.
+     * If Pacman is not dead, it moves Pacman, draws Pacman, moves the ghosts, and checks the state of the maze.
+     *
+     * @param g2d Graphics2D object used for drawing.
+     */
     private void playGame(Graphics2D g2d) {
-        g2d.setFont(font);
-        g2d.setColor(Color.pink);
-        String show = "Score: " + score;
-        g2d.drawString(show, SCREEN_SIZE / 2 + 96, SCREEN_SIZE + 16);
-
-        for(int i = 0; i < lives ; i++){
-            g2d.drawImage(heart, i * 28 + 8, SCREEN_SIZE + 1, this);
+        if(isDead){
+            death();
+        }
+        else{
+            movePacman();
+            drawPacman(g2d);
+            moveGhosts(g2d);
+            checkMaze();
         }
     }
 
     private void drawScore(Graphics2D g2d) {
+        Font smallFont = new Font("Helvetica", Font.BOLD, 14);
+        g2d.setFont(smallFont);
+        g2d.setColor(new Color(5, 151, 79));
+        String s = "Score: " + score;
+        g2d.drawString(s, SCREEN_SIZE / 2 + 96, SCREEN_SIZE + 16);
+
+        for(int i = 0; i < lives ; i++){
+            g2d.drawImage(heart, i * 28 + 8, SCREEN_SIZE + 1, this);
+        }
     }
 
     private void drawMaze(Graphics2D g2d) {
@@ -528,11 +580,6 @@ public class GameLogic extends JFrame implements ActionListener{
             }
         }
     }
-
-
-
-
-
 
     @Override
     public void actionPerformed(ActionEvent e) {
